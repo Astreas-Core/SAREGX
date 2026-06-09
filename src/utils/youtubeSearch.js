@@ -30,24 +30,26 @@ export async function getInvidiousInstances() {
 }
 
 export async function searchYouTubeTrack(query) {
-  try {
-    const searchUrl = `/api/search?q=${encodeURIComponent(query + ' audio')}`;
-    const response = await fetch(searchUrl);
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data.length > 0) {
-        const item = data[0]; // Take the top result
-        return {
-          id: item.videoId,
-          title: item.title,
-          artist: item.author,
-          thumb: item.videoThumbnails?.find(t => t.quality === 'medium')?.url || item.videoThumbnails?.[0]?.url || ''
-        };
+  const instances = await getInvidiousInstances();
+  
+  for (const instance of instances) {
+    try {
+      const res = await fetch(`${instance}/api/v1/search?q=${encodeURIComponent(query + ' audio')}&type=video`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const item = data[0];
+          return {
+            id: item.videoId,
+            title: item.title,
+            artist: item.author,
+            thumb: item.videoThumbnails?.find(t => t.quality === 'medium')?.url || item.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg`
+          };
+        }
       }
+    } catch (e) {
+      console.warn(`Instance ${instance} failed, trying next...`);
     }
-  } catch (e) {
-    // Ignore and return null
   }
   return null;
 }
