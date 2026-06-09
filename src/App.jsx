@@ -29,11 +29,21 @@ function NetworkNotifier() {
   const [isSlow, setIsSlow] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [dismissed, setDismissed] = useState(false);
+  const [justRecovered, setJustRecovered] = useState(false);
 
   useEffect(() => {
-    // If the network state fully recovers, reset the dismissed flag so it can appear again later if needed
     if (!isOffline && !isSlow) {
+      // Network recovered! Show green state, then dismiss after 3s
+      setJustRecovered(true);
+      const timer = setTimeout(() => {
+        setDismissed(true);
+        setJustRecovered(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      // Reset if network goes bad again
       setDismissed(false);
+      setJustRecovered(false);
     }
   }, [isOffline, isSlow]);
 
@@ -69,14 +79,24 @@ function NetworkNotifier() {
     };
   }, []);
 
-  if ((!isSlow && !isOffline) || dismissed) return null;
+  if ((!isSlow && !isOffline && !justRecovered) || dismissed) return null;
+
+  let bg = 'rgba(255, 152, 0, 0.9)';
+  let text = 'Slow Network';
+  if (isOffline) {
+    bg = 'rgba(255, 75, 75, 0.9)';
+    text = 'Offline Mode';
+  } else if (justRecovered) {
+    bg = 'rgba(76, 175, 80, 0.9)';
+    text = 'Network Restored!';
+  }
 
   return (
     <div style={{
       position: 'fixed',
       top: '100px',
       right: '-12px',
-      background: isOffline ? 'rgba(255, 75, 75, 0.9)' : 'rgba(255, 152, 0, 0.9)',
+      background: bg,
       backdropFilter: 'blur(12px)',
       color: 'white',
       padding: '12px 24px 12px 16px',
@@ -100,7 +120,7 @@ function NetworkNotifier() {
           </>
         )}
       </svg>
-      <span>{isOffline ? 'Offline Mode' : 'Slow Network'}</span>
+      <span>{text}</span>
       
       <button 
         onClick={() => setDismissed(true)}
@@ -131,7 +151,7 @@ function AppContent() {
       
       <NetworkNotifier />
       
-      <main style={{ paddingBottom: currentUser ? '100px' : '0', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', justifyContent: currentUser ? 'flex-start' : 'center' }}>
+      <main style={{ paddingBottom: currentUser ? '100px' : '0', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', minHeight: '100vh', justifyContent: currentUser ? 'flex-start' : 'center', boxSizing: 'border-box' }}>
         <Routes>
           <Route path="/login" element={
             currentUser ? <Navigate to="/" replace /> : <Login />

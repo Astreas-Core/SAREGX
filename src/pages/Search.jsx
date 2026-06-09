@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search as SearchIcon, Play } from 'lucide-react';
+import { Search as SearchIcon, Play, Plus } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { db, auth } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query as firestoreQuery, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { searchYouTubeMultiple } from '../utils/youtubeSearch';
 
 export default function Search() {
   const location = useLocation();
@@ -11,8 +12,39 @@ export default function Search() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { playTrack } = usePlayer();
+  const { playTrack, addToQueue } = usePlayer();
+  const [recentSearches, setRecentSearches] = useState([]);
   const lastSearchedRef = React.useRef('');
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    const searchesQ = firestoreQuery(collection(db, 'users', auth.currentUser.uid, 'searches'), orderBy('searchedAt', 'desc'), limit(20));
+    const unsubscribe = onSnapshot(searchesQ, (snapshot) => {
+      const searches = [];
+      const seenQueries = new Set();
+      snapshot.forEach(doc => {
+        const q = doc.data().query.toLowerCase();
+        if (!seenQueries.has(q)) {
+          seenQueries.add(q);
+          searches.push(doc.data().query);
+        }
+      });
+      setRecentSearches(searches);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const saveSearchHistory = async (q) => {
+    if (!auth.currentUser || q.trim().length < 3) return;
+    try {
+      await addDoc(collection(db, 'users', auth.currentUser.uid, 'searches'), {
+        query: q.trim(),
+        searchedAt: serverTimestamp()
+      });
+    } catch(e) {
+      console.error("Error saving search", e);
+    }
+  };
 
   const executeSearch = async (searchQuery, saveToHistory = false) => {
     if (!searchQuery.trim()) {
@@ -20,8 +52,13 @@ export default function Search() {
       return;
     }
     
-    // Skip if we already searched this exact query
-    if (searchQuery.trim() === lastSearchedRef.current && !saveToHistory) return;
+    // If we already fetched results for this exact query, don't hit the API again.
+    // Just save it to history if requested.
+    if (searchQuery.trim() === lastSearchedRef.current) {
+      if (saveToHistory) saveSearchHistory(searchQuery);
+      return;
+    }
+    
     lastSearchedRef.current = searchQuery.trim();
 
     setLoading(true);
@@ -32,24 +69,14 @@ export default function Search() {
         ? searchQuery 
         : `${searchQuery} song`;
         
-      const response = await fetch(`/api/search?q=${encodeURIComponent(musicQuery)}`);
+      const data = await searchYouTubeMultiple(musicQuery);
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.length > 0) {
-          setResults(data);
-          success = true;
-          
-          if (saveToHistory && auth.currentUser) {
-            try {
-              await addDoc(collection(db, 'users', auth.currentUser.uid, 'searches'), {
-                query: searchQuery.trim(),
-                searchedAt: serverTimestamp()
-              });
-            } catch(e) {
-              console.error("Error saving search", e);
-            }
-          }
+      if (data && data.length > 0) {
+        setResults(data);
+        success = true;
+        
+        if (saveToHistory) {
+          saveSearchHistory(searchQuery);
         }
       }
     } catch (error) {
@@ -80,11 +107,22 @@ export default function Search() {
       setResults([]);
       return;
     }
+    
     const delayDebounceFn = setTimeout(() => {
       executeSearch(query, false);
-    }, 400); // 400ms delay
+    }, 400); // 400ms delay for live search results
 
-    return () => clearTimeout(delayDebounceFn);
+    // Auto-save to history after 2.5 seconds of inactivity to avoid saving half-typed words
+    const historyDebounceFn = setTimeout(() => {
+      if (query.trim().length >= 3) {
+        executeSearch(query, true);
+      }
+    }, 2500);
+
+    return () => {
+      clearTimeout(delayDebounceFn);
+      clearTimeout(historyDebounceFn);
+    };
   }, [query]);
 
   const handleSearch = async (e) => {
@@ -100,10 +138,10 @@ export default function Search() {
   };
 
   return (
-    <div style={{ width: '100%', padding: '40px 4vw', margin: '0 auto' }}>
+    <div style={{ width: '100%', maxWidth: '1000px', padding: '40px 4vw', margin: '0 auto' }}>
       <h2 style={{ fontSize: '2.5rem', marginBottom: '32px', fontWeight: 600, letterSpacing: '-0.02em' }}>Search Music</h2>
       
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', marginBottom: '56px', maxWidth: '800px' }}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', marginBottom: '56px', width: '100%' }}>
         <div style={{ position: 'relative', flex: 1 }}>
           <SearchIcon size={24} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input 
@@ -161,11 +199,50 @@ export default function Search() {
         </button>
       </form>
 
+      {/* Recent Searches List */}
+      {!query.trim() && results.length === 0 && recentSearches.length > 0 && (
+        <div style={{ width: '100%' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <SearchIcon size={18} /> Recent Searches
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {recentSearches.map((sq, i) => (
+              <div 
+                key={i}
+                onClick={() => {
+                  setQuery(sq);
+                  executeSearch(sq, true);
+                  navigate('/search?q=' + encodeURIComponent(sq));
+                }}
+                style={{ 
+                  padding: '16px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', 
+                  display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  border: '1px solid rgba(255,255,255,0.04)', transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.transform = 'translateX(4px)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)';
+                  e.currentTarget.style.transform = 'translateX(0)';
+                }}
+              >
+                <SearchIcon size={18} color="var(--text-muted)" />
+                <span style={{ fontSize: '1.05rem', fontWeight: 500 }}>{sq}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Grid Layout for premium visual experience */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
-        gap: '24px' 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
+        gap: '16px' 
       }}>
         {results.map((video) => (
           <div 
@@ -190,12 +267,20 @@ export default function Search() {
               e.currentTarget.style.transform = 'translateY(0)';
               e.currentTarget.style.boxShadow = 'none';
             }}
-            onClick={() => playTrack({
-              id: video.videoId,
-              title: video.title,
-              artist: video.author,
-              thumb: video.videoThumbnails?.[0]?.url || ''
-            })}
+            onClick={() => {
+              const playlistContext = results.map(v => ({
+                id: v.videoId,
+                title: v.title,
+                artist: v.author,
+                thumb: v.videoThumbnails?.[0]?.url || ''
+              }));
+              playTrack({
+                id: video.videoId,
+                title: video.title,
+                artist: video.author,
+                thumb: video.videoThumbnails?.[0]?.url || ''
+              }, playlistContext);
+            }}
           >
             {/* Large Cover Image */}
             <div style={{ 
@@ -238,9 +323,32 @@ export default function Search() {
               <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{video.author}</p>
             </div>
             
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor' }}></div>
-              {formatDuration(video.lengthSeconds)}
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor' }}></div>
+                {formatDuration(video.lengthSeconds)}
+              </div>
+              
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  const track = {
+                    id: video.videoId,
+                    title: video.title,
+                    artist: video.author,
+                    thumb: video.videoThumbnails?.[0]?.url || ''
+                  };
+                  addToQueue(track);
+                  e.currentTarget.style.color = '#1DB954';
+                  setTimeout(() => { if (e.currentTarget) e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }, 500);
+                }}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '4px', transition: 'color 0.2s' }}
+                title="Add to Queue"
+                onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}
+              >
+                <Plus size={20} />
+              </button>
             </div>
           </div>
         ))}

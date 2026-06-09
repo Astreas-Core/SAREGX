@@ -146,7 +146,7 @@ export default function Library() {
           likes.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {likes.map((track, i) => (
-                <TrackListItem key={track.id} track={track} index={i+1} playTrack={playTrack} toggleLike={toggleLike} isLiked={likedSongs[track.id]} />
+                <TrackListItem key={track.id} track={track} index={i+1} playTrack={(t) => playTrack(t, likes)} toggleLike={toggleLike} isLiked={likedSongs[track.id]} />
               ))}
             </div>
           ) : (
@@ -167,7 +167,7 @@ export default function Library() {
               <h2 style={{ fontSize: '2.5rem', marginBottom: '32px' }}>{activePlaylist.name}</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {activePlaylist.tracks.map((track, i) => (
-                  <TrackListItem key={`${track.id}-${i}`} track={track} index={i+1} playTrack={playTrack} toggleLike={toggleLike} isLiked={likedSongs[track.id]} />
+                  <TrackListItem key={`${track.id}-${i}`} track={track} index={i+1} playTrack={(t) => playTrack(t, activePlaylist.tracks)} toggleLike={toggleLike} isLiked={likedSongs[track.id]} />
                 ))}
               </div>
             </div>
@@ -322,13 +322,16 @@ export default function Library() {
 }
 
 function TrackListItem({ track, index, playTrack, toggleLike, isLiked }) {
+  const { addToQueue } = usePlayer();
+
   return (
     <div 
       className="track-list-item"
       onClick={() => playTrack(track)}
       style={{ 
         display: 'flex', alignItems: 'center', padding: '12px 16px', borderRadius: '8px', 
-        background: 'transparent', cursor: 'pointer', transition: 'background 0.2s', gap: '16px' 
+        background: 'transparent', cursor: 'pointer', transition: 'background 0.2s', gap: '16px',
+        width: '100%', overflow: 'hidden', boxSizing: 'border-box'
       }}
     >
       <div style={{ width: '32px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: 500, display: 'flex', justifyContent: 'center' }}>
@@ -352,6 +355,22 @@ function TrackListItem({ track, index, playTrack, toggleLike, isLiked }) {
           {track.artist}
         </p>
       </div>
+
+      <button 
+        onClick={(e) => { 
+          e.stopPropagation(); 
+          addToQueue(track); 
+          // Show a little animation or just let it be
+          e.currentTarget.style.color = '#1DB954';
+          setTimeout(() => { if (e.currentTarget) e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }, 500);
+        }}
+        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '8px', transition: 'transform 0.1s, color 0.2s' }}
+        title="Add to Queue"
+        onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}
+      >
+        <Plus size={20} />
+      </button>
       
       <button 
         onClick={(e) => { e.stopPropagation(); toggleLike(track); }}

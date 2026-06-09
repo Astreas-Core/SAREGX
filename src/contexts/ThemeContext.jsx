@@ -9,23 +9,17 @@ export const THEMES = {
   orange: { name: 'Sunset', hex: '#ff5500', rgb: '255, 85, 0' },
   purple: { name: 'Amethyst', hex: '#9d4edd', rgb: '157, 78, 221' },
   red: { name: 'Crimson', hex: '#ff2a2a', rgb: '255, 42, 42' },
-  dynamic: { name: 'Dynamic (Thumbnail)', hex: '#ffffff', rgb: '255, 255, 255' }
+  elclasico: { name: 'El Clasico', hex: '#ffffff', rgb: '255, 255, 255' }
 };
 
 export function ThemeProvider({ children }) {
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('saregx_theme');
-    return saved && THEMES[saved] ? saved : 'pink';
+    return saved && THEMES[saved] ? saved : 'elclasico';
   });
 
-  const [dynamicColor, setDynamicColor] = useState(null);
-
   useEffect(() => {
-    let themeToApply = THEMES[currentTheme];
-    
-    if (currentTheme === 'dynamic' && dynamicColor) {
-      themeToApply = dynamicColor;
-    }
+    const themeToApply = THEMES[currentTheme];
 
     // Apply variables to root document
     document.documentElement.style.setProperty('--accent-pink', themeToApply.hex); // Legacy support
@@ -34,14 +28,13 @@ export function ThemeProvider({ children }) {
     
     // Save to local storage
     localStorage.setItem('saregx_theme', currentTheme);
-  }, [currentTheme, dynamicColor]);
+  }, [currentTheme]);
 
   return (
     <ThemeContext.Provider value={{ 
       currentTheme, 
       setCurrentTheme, 
-      themeObj: currentTheme === 'dynamic' && dynamicColor ? dynamicColor : THEMES[currentTheme],
-      setDynamicColor 
+      themeObj: THEMES[currentTheme]
     }}>
       {children}
     </ThemeContext.Provider>

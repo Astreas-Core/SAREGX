@@ -180,7 +180,7 @@ export default function Settings() {
             >
               <div style={{
                 position: 'absolute', top: '2px', left: highQualityAudio ? '26px' : '2px',
-                width: '20px', height: '20px', borderRadius: '50%', background: 'white',
+                width: '20px', height: '20px', borderRadius: '50%', background: highQualityAudio && currentTheme === 'elclasico' ? 'black' : 'white',
                 transition: 'left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
               }} />
             </button>
@@ -212,7 +212,7 @@ export default function Settings() {
               >
                 <div style={{
                   width: '20px', height: '20px', borderRadius: '50%',
-                  background: key === 'dynamic' ? 'linear-gradient(135deg, #ff007f, #00d2ff)' : theme.hex,
+                  background: theme.hex,
                   boxShadow: `0 0 10px rgba(${theme.rgb || '255,255,255'}, 0.5)`
                 }} />
                 <span style={{ fontSize: '0.9rem', fontWeight: currentTheme === key ? 700 : 500, color: currentTheme === key ? 'white' : 'var(--text-muted)' }}>

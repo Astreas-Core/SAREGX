@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Heart } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, Mic2 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { getAverageColor } from '../utils/colorUtils';
+import LyricsOverlay from './LyricsOverlay';
 
 export default function BottomPlayer() {
   const { 
@@ -15,17 +16,11 @@ export default function BottomPlayer() {
     volume,
     setVolume,
     likedSongs,
-    toggleLike
+    toggleLike,
+    playNext,
+    playPrev
   } = usePlayer();
-  const { themeObj, currentTheme, setDynamicColor } = useTheme();
-
-  useEffect(() => {
-    if (currentTheme === 'dynamic' && currentTrack?.thumbnail) {
-      getAverageColor(currentTrack.thumbnail)
-        .then(color => setDynamicColor(color))
-        .catch(err => console.error('Failed to extract dynamic color:', err));
-    }
-  }, [currentTheme, currentTrack?.thumbnail, setDynamicColor]);
+  const { themeObj, currentTheme } = useTheme();
 
   const isLiked = currentTrack && likedSongs[currentTrack.id];
 
@@ -35,6 +30,8 @@ export default function BottomPlayer() {
   // Local state for hover effects
   const [isHoveringCover, setIsHoveringCover] = useState(false);
   const [isHoveringWaveform, setIsHoveringWaveform] = useState(false);
+  
+  const [isLyricsOpen, setIsLyricsOpen] = useState(false);
 
   const formatDuration = (seconds) => {
     if (!seconds) return '0:00';
@@ -174,6 +171,7 @@ export default function BottomPlayer() {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
           <button 
+            onClick={playPrev}
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', transition: 'transform 0.1s' }}
             onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.8)'}
             onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -206,6 +204,7 @@ export default function BottomPlayer() {
           </button>
 
           <button 
+            onClick={playNext}
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', transition: 'transform 0.1s' }}
             onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.8)'}
             onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -290,9 +289,18 @@ export default function BottomPlayer() {
         </div>
       </div>
 
-      {/* Volume */}
+      {/* Volume & Lyrics */}
       <div className="player-volume" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '14px', width: '25%' }}>
-        <Volume2 size={18} color="var(--text-muted)" />
+        <button 
+          onClick={() => setIsLyricsOpen(!isLyricsOpen)}
+          style={{ background: 'none', border: 'none', color: isLyricsOpen ? 'var(--accent-pink)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'color 0.2s', padding: '4px' }}
+          title="Synced Lyrics"
+          onMouseEnter={(e) => { if (!isLyricsOpen) e.currentTarget.style.color = 'white'; }}
+          onMouseLeave={(e) => { if (!isLyricsOpen) e.currentTarget.style.color = 'var(--text-muted)'; }}
+        >
+          <Mic2 size={18} />
+        </button>
+        <Volume2 size={18} color="var(--text-muted)" style={{ marginLeft: '8px' }} />
         <div style={{ 
           width: '90px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', cursor: 'pointer', position: 'relative' 
         }}>
@@ -317,6 +325,8 @@ export default function BottomPlayer() {
           animation: none;
         }
       `}</style>
+
+      <LyricsOverlay isOpen={isLyricsOpen} onClose={() => setIsLyricsOpen(false)} />
     </div>
   );
 }

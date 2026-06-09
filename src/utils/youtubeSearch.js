@@ -53,3 +53,28 @@ export async function searchYouTubeTrack(query) {
   }
   return null;
 }
+
+export async function searchYouTubeMultiple(query) {
+  const instances = await getInvidiousInstances();
+  
+  for (const instance of instances) {
+    try {
+      const res = await fetch(`${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          return data.map(item => ({
+            videoId: item.videoId,
+            title: item.title,
+            author: item.author,
+            lengthSeconds: item.lengthSeconds,
+            videoThumbnails: [{ url: item.videoThumbnails?.find(t => t.quality === 'medium')?.url || item.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg` }]
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn(`Instance ${instance} failed for multiple search, trying next...`);
+    }
+  }
+  return [];
+}

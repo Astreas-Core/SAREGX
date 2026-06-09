@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Heart, Sparkles, Search as SearchIcon, Zap, Music } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlayer } from '../contexts/PlayerContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { db } from '../firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +14,7 @@ let hasLoadedRecommendations = false;
 export default function Home() {
   const { currentUser } = useAuth();
   const { playTrack, toggleLike, likedSongs, isPlaying, currentTrack } = usePlayer();
+  const { currentTheme } = useTheme();
   const navigate = useNavigate();
 
   const userName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Music Lover';
@@ -33,9 +35,10 @@ export default function Home() {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 17) return 'Good afternoon';
+    if (hour >= 17 && hour < 22) return 'Good evening';
+    return 'Good night';
   };
 
   useEffect(() => {
@@ -348,8 +351,7 @@ export default function Home() {
             <Zap size={24} color="var(--accent-pink)" />
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Recommended for You</h3>
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
             {/* Interactive Mood Pills */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }} className="hide-scrollbar">
               {moods.map(mood => (
@@ -364,7 +366,7 @@ export default function Home() {
                     fontWeight: 600,
                     cursor: 'pointer',
                     background: selectedMood === mood ? 'var(--accent-pink)' : 'rgba(255,255,255,0.05)',
-                    color: selectedMood === mood ? 'white' : 'var(--text-muted)',
+                    color: selectedMood === mood ? (currentTheme === 'elclasico' ? 'black' : 'white') : 'var(--text-muted)',
                     transition: 'all 0.2s',
                     boxShadow: selectedMood === mood ? '0 4px 16px rgba(var(--accent-rgb), 0.4)' : 'none'
                   }}
@@ -392,12 +394,12 @@ export default function Home() {
             <p style={{ fontSize: '0.9rem' }}>{selectedMood === 'All' ? 'Analyzing your taste profile...' : `Finding the best ${selectedMood} tracks...`}</p>
           </div>
         ) : recommendations.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '16px' }}>
             {recommendations.map((track, i) => (
               <div 
                 key={i} 
                 className="track-card"
-                onClick={() => playTrack(track)}
+                onClick={() => playTrack(track, recommendations)}
                 style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', position: 'relative' }}
               >
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', marginBottom: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
@@ -429,6 +431,51 @@ export default function Home() {
         )}
       </div>
 
+      {/* Recently Played Songs */}
+      {recentTracks.length > 0 && (
+        <div style={{ width: '100%', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            <Music size={24} color="var(--accent-pink)" />
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Recently Played</h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recentTracks.slice(0, 10).map((track, i) => (
+              <div 
+                key={i} 
+                className="recent-track-row"
+                onClick={() => playTrack(track, recentTracks.slice(0, 10))}
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', 
+                  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', 
+                  borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s', position: 'relative',
+                  width: '100%', overflow: 'hidden', boxSizing: 'border-box'
+                }}
+              >
+                <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
+                  <img src={track.thumb || track.albumArtUrl} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div className="play-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}>
+                    <Play fill="white" size={20} style={{ marginLeft: '2px' }} />
+                  </div>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 600, margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title}</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>{track.artist}</p>
+                </div>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); toggleLike(track); }}
+                  style={{ background: 'none', border: 'none', padding: '8px', color: likedSongs[track.id] ? 'var(--accent-pink)' : 'var(--text-muted)', cursor: 'pointer', transition: 'transform 0.1s' }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.85)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <Heart size={20} fill={likedSongs[track.id] ? "currentColor" : "none"} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Your Recent Searches */}
       {recentSearches.length > 0 && (
         <div>
@@ -457,6 +504,13 @@ export default function Home() {
           border-color: rgba(255,255,255,0.1) !important;
         }
         .track-card:hover .play-overlay {
+          opacity: 1 !important;
+        }
+        .recent-track-row:hover {
+          background: rgba(255,255,255,0.06) !important;
+          border-color: rgba(255,255,255,0.1) !important;
+        }
+        .recent-track-row:hover .play-overlay {
           opacity: 1 !important;
         }
         .search-pill:hover {

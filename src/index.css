@@ -29,9 +29,10 @@ body {
   font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
-  align-items: center;
   padding: 14px;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 a {
@@ -47,7 +48,8 @@ ul {
    NAVBAR
    ========================================================================= */
 .nav-container {
-  width: max-content;
+  width: 100%;
+  max-width: max-content;
   background: rgba(20, 20, 28, 0.7);
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -600,7 +602,7 @@ ul {
     gap: 12px !important;
   }
 
-  /* Bottom Audio Player */
+  /* Bottom Audio Player Mobile tweaks */
   .bottom-player-container {
     bottom: 90px !important; /* Sit just above the new bottom navbar */
     width: 95% !important;
@@ -609,10 +611,21 @@ ul {
   .player-volume {
     display: none !important; /* Hide manual volume on phones */
   }
+}
+
+@media (max-width: 1024px) {
+  /* Fix BottomPlayer overflowing in split-screen/tablets */
   .player-track-info {
-    width: 50% !important;
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
   }
   .player-controls {
-    width: 50% !important;
+    width: auto !important;
+    flex: 1.5 1 auto !important;
+  }
+  .player-volume {
+    width: auto !important;
+    flex: 0.8 1 auto !important;
   }
 }

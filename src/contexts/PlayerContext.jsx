@@ -14,6 +14,9 @@ export function PlayerProvider({ children }) {
   const [likedSongs, setLikedSongs] = useState({}); // Map of id -> track object for instant lookup
   const [playlists, setPlaylists] = useState([]); // Array of playlist objects
   
+  // CONTEXT PLAYLIST SYSTEM
+  const [contextPlaylist, setContextPlaylist] = useState([]);
+  const [contextIndex, setContextIndex] = useState(-1); 
   
   // This will hold the actual YouTube player instance from react-youtube
   const ytPlayerRef = useRef(null);
@@ -29,6 +32,8 @@ export function PlayerProvider({ children }) {
           setDuration(0);
           setLikedSongs({});
           setPlaylists([]);
+          setContextPlaylist([]);
+          setContextIndex(-1);
           if (ytPlayerRef.current) {
             try { ytPlayerRef.current.stopVideo(); } catch (e) {}
           }
@@ -68,6 +73,64 @@ export function PlayerProvider({ children }) {
       unsubscribePlaylists();
     };
   }, [auth.currentUser]);
+
+  // Global Spacebar Play/Pause Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space') {
+        const activeTag = document.activeElement.tagName.toLowerCase();
+        if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
+          return; // Ignore if typing
+        }
+        e.preventDefault();
+        setIsPlaying(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const fadeIntervalRef = useRef(null);
+
+  // Sync play/pause with YouTube iframe
+  useEffect(() => {
+    if (!ytPlayerRef.current) return;
+    try {
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+
+      if (isPlaying) {
+        ytPlayerRef.current.setVolume(0);
+        ytPlayerRef.current.playVideo();
+        ytPlayerRef.current.setPlaybackQuality('highres'); // Force highest quality
+        
+        // Smooth fade in
+        let vol = 0;
+        fadeIntervalRef.current = setInterval(() => {
+          vol += 5;
+          if (vol >= volume) {
+            ytPlayerRef.current.setVolume(volume);
+            clearInterval(fadeIntervalRef.current);
+          } else {
+            ytPlayerRef.current.setVolume(vol);
+          }
+        }, 20);
+      } else {
+        // Smooth fade out
+        let vol = volume;
+        fadeIntervalRef.current = setInterval(() => {
+          vol -= 5;
+          if (vol <= 0) {
+            ytPlayerRef.current.pauseVideo();
+            ytPlayerRef.current.setVolume(volume); // Restore for next play
+            clearInterval(fadeIntervalRef.current);
+          } else {
+            ytPlayerRef.current.setVolume(vol);
+          }
+        }, 20);
+      }
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPlaying]);
 
   // Poll for progress
   useEffect(() => {
@@ -125,8 +188,48 @@ export function PlayerProvider({ children }) {
     }
   };
 
-  const playTrack = async (track) => {
+  const playNext = () => {
+    if (contextPlaylist.length > 0 && contextIndex !== -1) {
+      let nextIdx = contextIndex + 1;
+      // Loop back to beginning if at the end
+      if (nextIdx >= contextPlaylist.length) {
+        nextIdx = 0;
+      }
+      playTrack(contextPlaylist[nextIdx], contextPlaylist, nextIdx);
+    } else {
+      setIsPlaying(false);
+      setCurrentTrack(null);
+    }
+  };
+
+  const playPrev = () => {
+    if (contextPlaylist.length > 0 && contextIndex !== -1) {
+      let prevIdx = contextIndex - 1;
+      // Loop to end if at the beginning
+      if (prevIdx < 0) {
+        prevIdx = contextPlaylist.length - 1;
+      }
+      playTrack(contextPlaylist[prevIdx], contextPlaylist, prevIdx);
+    }
+  };
+
+  const playTrack = async (track, playlistContext = [], forcedIndex = -1) => {
     console.log("Playing track:", track);
+    
+    // Update context playlist
+    if (playlistContext && playlistContext.length > 0) {
+      setContextPlaylist(playlistContext);
+      if (forcedIndex !== -1) {
+        setContextIndex(forcedIndex);
+      } else {
+        const idx = playlistContext.findIndex(t => t.id === track.id);
+        setContextIndex(idx !== -1 ? idx : 0);
+      }
+    } else if (forcedIndex === -1 && (!contextPlaylist.length || contextPlaylist[contextIndex]?.id !== track.id)) {
+      // If no playlist provided and we're playing a new single track, clear context
+      setContextPlaylist([track]);
+      setContextIndex(0);
+    }
     let playTarget = { ...track };
     
     // Check if the id is a valid YouTube ID (11 chars)
@@ -139,6 +242,7 @@ export function PlayerProvider({ children }) {
       if (resolved && resolved.id) {
         playTarget.youtubeId = resolved.id;
         console.log("Resolved to:", playTarget.youtubeId);
+
         
         // Cache the resolved YouTube ID to Firestore if it's a liked song
         if (auth.currentUser && likedSongs[playTarget.id]) {
@@ -202,22 +306,26 @@ export function PlayerProvider({ children }) {
   };
 
   return (
-    <PlayerContext.Provider value={{ 
-      currentTrack, 
-      isPlaying, 
+    <PlayerContext.Provider value={{
+      currentTrack,
+      isPlaying,
       setIsPlaying,
       progress,
       duration,
       volume,
-      ytPlayerRef,
-      likedSongs,
-      playlists,
-      toggleLike,
-      createPlaylist,
+      setVolume,
       playTrack,
       togglePlay,
       seekTo,
-      setVolume
+      likedSongs,
+      toggleLike,
+      playlists,
+      createPlaylist,
+      ytPlayerRef,
+      contextPlaylist,
+      contextIndex,
+      playNext,
+      playPrev
     }}>
       {children}
     </PlayerContext.Provider>

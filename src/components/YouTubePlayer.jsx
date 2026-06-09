@@ -3,7 +3,7 @@ import YouTube from 'react-youtube';
 import { usePlayer } from '../contexts/PlayerContext';
 
 export default function YouTubePlayer() {
-  const { currentTrack, setIsPlaying, ytPlayerRef } = usePlayer();
+  const { currentTrack, setIsPlaying, ytPlayerRef, playNext } = usePlayer();
   const [isReady, setIsReady] = useState(false);
 
   const onReady = (event) => {
@@ -14,16 +14,24 @@ export default function YouTubePlayer() {
   useEffect(() => {
     if (isReady && ytPlayerRef.current && currentTrack?.youtubeId) {
       ytPlayerRef.current.loadVideoById(currentTrack.youtubeId);
+      // Force play specifically to overcome some browser autoplay quirks
+      setTimeout(() => {
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+          ytPlayerRef.current.playVideo();
+        }
+      }, 500);
       setIsPlaying(true);
     }
-  }, [currentTrack, isReady, setIsPlaying, ytPlayerRef]);
+  }, [currentTrack?.youtubeId, isReady, setIsPlaying, ytPlayerRef]);
 
   const onStateChange = (event) => {
     // 1 is PLAYING, 2 is PAUSED, 0 is ENDED
     if (event.data === 1) {
       setIsPlaying(true);
-    } else if (event.data === 2 || event.data === 0) {
+    } else if (event.data === 2) {
       setIsPlaying(false);
+    } else if (event.data === 0) {
+      playNext();
     }
   };
 
@@ -37,6 +45,7 @@ export default function YouTubePlayer() {
       fs: 0,
       modestbranding: 1,
       origin: window.location.origin,
+      vq: 'highres',
     },
   };
 
