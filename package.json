@@ -16,6 +16,7 @@
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.16.0",
     "react-youtube": "^10.1.0",
+    "yt-search": "^2.13.1",
     "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
