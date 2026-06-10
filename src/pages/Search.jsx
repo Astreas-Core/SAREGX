@@ -139,11 +139,11 @@ export default function Search() {
 
   return (
     <div style={{ width: '100%', maxWidth: '1000px', padding: '40px 4vw', margin: '0 auto' }}>
-      <h2 style={{ fontSize: '2.5rem', marginBottom: '32px', fontWeight: 600, letterSpacing: '-0.02em' }}>Search Music</h2>
+      <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', marginBottom: '24px', fontWeight: 600, letterSpacing: '-0.02em' }}>Search Music</h2>
       
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', marginBottom: '56px', width: '100%' }}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', marginBottom: '40px', width: '100%', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1 }}>
-          <SearchIcon size={24} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <SearchIcon size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input 
             type="text" 
             placeholder="Search for songs, artists, or albums..." 
@@ -151,12 +151,12 @@ export default function Search() {
             onChange={(e) => setQuery(e.target.value)}
             style={{ 
               width: '100%',
-              padding: '20px 20px 20px 56px', 
+              padding: '16px 16px 16px 48px', 
               borderRadius: '16px', 
               border: '1px solid rgba(255,255,255,0.08)', 
               background: 'rgba(255,255,255,0.03)', 
               color: 'white',
-              fontSize: '1.1rem',
+              fontSize: '1rem',
               outline: 'none',
               transition: 'background 0.2s, border-color 0.2s',
             }}

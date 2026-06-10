@@ -292,14 +292,14 @@ export default function Home() {
   }
 
   return (
-    <div style={{ width: '100%', padding: '40px 4vw', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '48px' }}>
+    <div style={{ width: '100%', padding: '40px 4vw', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
       
       {/* Vibe Hero Section */}
       <div 
         className="vibe-hero"
         style={{
-          width: '100%',
-          height: '240px',
+          height: 'auto',
+          minHeight: '200px',
           borderRadius: '24px',
           padding: '40px',
           display: 'flex',
@@ -317,10 +317,10 @@ export default function Home() {
         <div className="mesh-bg" style={{ position: 'absolute', inset: -50, zIndex: 0, opacity: isPlaying ? 0.8 : 0.2 }}></div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          <h1 style={{ fontSize: 'clamp(1.6rem, 5vw, 2.5rem)', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
             {getGreeting()}, <span style={{ color: isPlaying ? '#fff' : 'var(--accent-pink)' }}>{userName}</span>
           </h1>
-          <p style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.7)', marginTop: '8px' }}>
+          <p style={{ fontSize: 'clamp(0.85rem, 2vw, 1.2rem)', color: 'rgba(255,255,255,0.7)', marginTop: '8px', wordBreak: 'break-word' }}>
             {isPlaying ? `Currently vibe-ing to ${currentTrack?.title}` : 'Ready to start your session?'}
           </p>
         </div>

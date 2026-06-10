@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Heart, Music, Plus, DownloadCloud, Loader, ListVideo, Trash2 } from 'lucide-react';
+import { Play, Heart, Music, DownloadCloud, Loader, ListVideo, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlayer } from '../contexts/PlayerContext';
 import { db } from '../firebase';
@@ -111,12 +111,12 @@ export default function Library() {
       
       {/* Header */}
       <div>
-        <h1 style={{ fontSize: '3.5rem', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 16px 0' }}>
+        <h1 style={{ fontSize: 'clamp(2rem, 6vw, 3.5rem)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 16px 0' }}>
           Your Library
         </h1>
         
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '24px', flexWrap: 'wrap' }}>
           <button 
             onClick={() => { setActiveTab('liked'); setActivePlaylist(null); }}
             style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: activeTab === 'liked' ? 'white' : 'rgba(255,255,255,0.1)', color: activeTab === 'liked' ? 'black' : 'white', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
@@ -243,7 +243,7 @@ export default function Library() {
 
         {/* IMPORT SPOTIFY */}
         {activeTab === 'import' && (
-          <div style={{ maxWidth: '640px', margin: '0 auto', background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '32px', padding: '48px', boxShadow: '0 24px 64px rgba(0,0,0,0.4)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ maxWidth: '640px', margin: '0 auto', background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: 'clamp(24px, 5vw, 48px)', boxShadow: '0 24px 64px rgba(0,0,0,0.4)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '250px', height: '250px', background: 'var(--accent-hex, var(--accent-pink))', opacity: '0.1', filter: 'blur(80px)', borderRadius: '50%' }}></div>
             
             <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '16px', letterSpacing: '-0.03em' }}>
@@ -322,7 +322,6 @@ export default function Library() {
 }
 
 function TrackListItem({ track, index, playTrack, toggleLike, isLiked }) {
-  const { addToQueue } = usePlayer();
 
   return (
     <div 
@@ -356,21 +355,7 @@ function TrackListItem({ track, index, playTrack, toggleLike, isLiked }) {
         </p>
       </div>
 
-      <button 
-        onClick={(e) => { 
-          e.stopPropagation(); 
-          addToQueue(track); 
-          // Show a little animation or just let it be
-          e.currentTarget.style.color = '#1DB954';
-          setTimeout(() => { if (e.currentTarget) e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }, 500);
-        }}
-        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '8px', transition: 'transform 0.1s, color 0.2s' }}
-        title="Add to Queue"
-        onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}
-      >
-        <Plus size={20} />
-      </button>
+
       
       <button 
         onClick={(e) => { e.stopPropagation(); toggleLike(track); }}

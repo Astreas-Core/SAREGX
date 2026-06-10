@@ -30,7 +30,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 14px;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   width: 100%;
 }
@@ -467,86 +467,40 @@ ul {
 }
 
 /* =========================================================================
-   RESPONSIVE
+   LOGIN PAGE
    ========================================================================= */
-@media (max-width: 860px) {
-  .icon-pipeline {
-    gap: 0;
-    margin-bottom: 40px;
-  }
-  .pipeline-line {
-    width: 80px;
-  }
+.login-container {
+  width: 100%;
+  max-width: 1200px;
+  min-height: 75vh;
+  margin: 0 auto;
+  display: flex;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #111118;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 32px 64px rgba(0,0,0,0.6);
 }
 
-@media (max-width: 768px) {
-  .nav-container {
-    display: flex;
-    justify-content: space-between;
-  }
-  .menu-toggle {
-    display: flex;
-  }
-  .nav-menu {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 100%;
-    height: 100vh;
-    background-color: var(--bg);
-    display: flex;
-    flex-direction: column;
-    padding: 80px 24px 24px;
-    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
-  }
-  .nav-menu.active {
-    right: 0;
-  }
-  .nav-links {
-    flex-direction: column;
-    align-items: center;
-    font-size: 1.2rem;
-    gap: 24px;
-    margin-bottom: 32px;
-  }
-  .nav-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-  .nav-actions .btn-pill {
-    width: 100%;
-    padding: 14px;
-    font-size: 1rem;
-  }
-
-  .icon-node {
-    width: 38px;
-    height: 38px;
-  }
-  .icon-node-center {
-    width: 52px;
-    height: 52px;
-  }
-  .hero-card {
-    padding: 60px 20px 60px;
-    min-height: auto;
-  }
-  .brands {
-    gap: 32px;
-  }
+.login-left {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.15) 0%, rgba(10, 10, 15, 0) 100%);
 }
 
-@media (max-width: 480px) {
-  .hero-card {
-    border-radius: 16px;
-  }
-  .brands {
-    gap: 24px;
-  }
-  .hero-heading {
-    font-size: clamp(2rem, 7vw, 2.4rem);
-  }
+.login-right {
+  flex: 0 0 450px;
+  background: #0a0a0f;
+  padding: 64px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1px solid rgba(255,255,255,0.03);
 }
 
 /* =========================================================================
@@ -569,52 +523,9 @@ ul {
 }
 
 /* =========================================================================
-   MOBILE OPTIMIZATIONS
+   RESPONSIVE — DESKTOP NARROW (tablets, split-screen)
    ========================================================================= */
-@media (max-width: 768px) {
-  /* Settings Page */
-  .settings-layout {
-    grid-template-columns: 1fr !important;
-  }
-  .settings-sidebar {
-    flex-direction: row !important;
-    overflow-x: auto;
-    padding-bottom: 8px;
-  }
-  .settings-sidebar button {
-    flex-shrink: 0;
-  }
-
-  /* Navigation Bar - Bottom Tab Style */
-  .nav-logo-fixed {
-    display: none !important;
-  }
-  .nav-container {
-    position: fixed !important;
-    bottom: 16px !important;
-    margin: 0 !important;
-    top: auto !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    z-index: 2000 !important;
-    width: max-content !important;
-    max-width: 95vw !important;
-    gap: 12px !important;
-  }
-
-  /* Bottom Audio Player Mobile tweaks */
-  .bottom-player-container {
-    bottom: 90px !important; /* Sit just above the new bottom navbar */
-    width: 95% !important;
-    padding: 12px 16px !important;
-  }
-  .player-volume {
-    display: none !important; /* Hide manual volume on phones */
-  }
-}
-
 @media (max-width: 1024px) {
-  /* Fix BottomPlayer overflowing in split-screen/tablets */
   .player-track-info {
     width: auto !important;
     min-width: 0 !important;
@@ -627,5 +538,221 @@ ul {
   .player-volume {
     width: auto !important;
     flex: 0.8 1 auto !important;
+  }
+}
+
+/* =========================================================================
+   RESPONSIVE — LOGIN PAGE (stacks at 900px)
+   ========================================================================= */
+@media (max-width: 900px) {
+  .login-container {
+    flex-direction: column;
+    min-height: auto;
+    border-radius: 16px;
+  }
+  .login-left {
+    padding: 32px 24px;
+    min-height: auto;
+    flex: none;
+  }
+  .login-left h1 {
+    font-size: 2.2rem !important;
+  }
+  .login-right {
+    flex: none;
+    width: 100%;
+    padding: 32px 24px;
+    border-left: none;
+    border-top: 1px solid rgba(255,255,255,0.03);
+  }
+}
+
+/* =========================================================================
+   RESPONSIVE — DESKTOP NARROW (old hero, pipeline, nav)
+   ========================================================================= */
+@media (max-width: 860px) {
+  .icon-pipeline {
+    gap: 0;
+    margin-bottom: 40px;
+  }
+  .pipeline-line {
+    width: 80px;
+  }
+}
+
+/* =========================================================================
+   RESPONSIVE — MOBILE (phones ≤768px) — SINGLE CONSOLIDATED BLOCK
+   ========================================================================= */
+@media (max-width: 768px) {
+
+  /* --- Body --- */
+  body {
+    padding: 8px;
+  }
+
+  /* --- Navigation Bar — Premium Bottom Tab Style --- */
+  .nav-logo-fixed {
+    display: none !important;
+  }
+  .menu-toggle {
+    display: none !important;
+  }
+  .nav-menu {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    padding: 0 !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+  }
+  .nav-links {
+    flex-direction: row !important;
+    gap: 6px !important;
+    font-size: 0.82rem !important;
+    margin-bottom: 0 !important;
+  }
+  .nav-links li a,
+  .nav-links a {
+    padding: 10px 20px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    border-radius: 999px !important;
+    transition: all 0.25s ease !important;
+  }
+  .nav-actions {
+    display: none !important;
+  }
+  .nav-container {
+    position: fixed !important;
+    bottom: max(14px, env(safe-area-inset-bottom)) !important;
+    margin: 0 !important;
+    top: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 2000 !important;
+    width: auto !important;
+    max-width: 92vw !important;
+    gap: 6px !important;
+    padding: 6px 8px !important;
+    background: rgba(16, 16, 24, 0.85) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 999px !important;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+      0 1px 0 rgba(255, 255, 255, 0.06) inset !important;
+  }
+
+  /* Hide nav bar & player when lyrics overlay is open */
+  body.lyrics-open .nav-container {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease !important;
+  }
+
+  /* --- Bottom Audio Player — Compact Mobile --- */
+  .bottom-player-container {
+    bottom: max(90px, calc(env(safe-area-inset-bottom) + 90px)) !important;
+    width: calc(100% - 16px) !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 72px !important;
+    padding: 10px 14px !important;
+    border-radius: 16px !important;
+    gap: 8px !important;
+  }
+
+  /* Track info: shrink album art & remove min-width */
+  .player-track-info {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+    gap: 10px !important;
+  }
+  .player-track-info > div:first-child {
+    width: 44px !important;
+    height: 44px !important;
+    flex-shrink: 0;
+  }
+
+  /* Hide the heart button on the player to save space */
+  .heart-btn {
+    display: none !important;
+  }
+
+  /* Controls: compact */
+  .player-controls {
+    width: auto !important;
+    flex: 1.2 1 0 !important;
+    gap: 4px !important;
+  }
+  .player-controls > div:first-child {
+    gap: 16px !important;
+  }
+  .player-controls > div:first-child button {
+    transform: scale(0.9);
+  }
+
+  /* Volume section: hide volume slider BUT keep lyrics button */
+  .player-volume {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    gap: 0 !important;
+  }
+  /* Hide the Volume2 icon (svg) and the volume slider div */
+  .player-volume > svg {
+    display: none !important;
+  }
+  .player-volume > div {
+    display: none !important;
+  }
+  /* Keep the lyrics button (it's a <button>) */
+  .player-volume > button {
+    display: flex !important;
+  }
+
+  /* --- Vibe Hero (Home page greeting card) --- */
+  .vibe-hero {
+    padding: 24px !important;
+    height: auto !important;
+    min-height: 180px !important;
+    border-radius: 16px !important;
+  }
+  .vibe-hero h1 {
+    font-size: 1.8rem !important;
+  }
+  .vibe-hero p {
+    font-size: 0.95rem !important;
+  }
+}
+
+/* =========================================================================
+   RESPONSIVE — SMALL PHONES (≤480px)
+   ========================================================================= */
+@media (max-width: 480px) {
+  .hero-card {
+    border-radius: 16px;
+  }
+  .brands {
+    gap: 24px;
+  }
+  .hero-heading {
+    font-size: clamp(2rem, 7vw, 2.4rem);
+  }
+
+  /* Even more compact player */
+  .bottom-player-container {
+    padding: 8px 10px !important;
+  }
+  .player-track-info > div:first-child {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .player-controls > div:first-child {
+    gap: 12px !important;
   }
 }

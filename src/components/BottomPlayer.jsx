@@ -87,14 +87,15 @@ export default function BottomPlayer() {
   if (!currentTrack) return null;
 
   return (
-    <div style={{
+    <div className="bottom-player-container" style={{
       position: 'fixed',
       bottom: '24px',
       left: '50%',
       transform: 'translateX(-50%)',
       width: 'calc(100% - 48px)',
       maxWidth: '1000px',
-      height: '96px',
+      height: 'auto',
+      minHeight: '80px',
       background: 'rgba(18, 18, 26, 0.75)',
       backdropFilter: 'blur(32px)',
       WebkitBackdropFilter: 'blur(32px)',
@@ -105,12 +106,12 @@ export default function BottomPlayer() {
       justifyContent: 'space-between',
       padding: '0 24px',
       boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.1)',
-      zIndex: 9999,
+      zIndex: 10001,
       animation: 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)' // Sleek entrance animation
     }}>
       
       {/* Track Info */}
-      <div className="player-track-info" style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '30%', minWidth: '220px' }}>
+      <div className="player-track-info" style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '30%', minWidth: 0 }}>
         {/* Animated Album Cover */}
         <div 
           onMouseEnter={() => setIsHoveringCover(true)}
@@ -151,6 +152,7 @@ export default function BottomPlayer() {
 
         {/* Bouncy Like Button */}
         <button 
+          className="heart-btn"
           onClick={() => toggleLike(currentTrack)}
           style={{ 
             background: 'none', border: 'none', 

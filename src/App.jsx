@@ -151,7 +151,7 @@ function AppContent() {
       
       <NetworkNotifier />
       
-      <main style={{ paddingBottom: currentUser ? '100px' : '0', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', minHeight: '100vh', justifyContent: currentUser ? 'flex-start' : 'center', boxSizing: 'border-box' }}>
+      <main style={{ paddingBottom: currentUser ? '100px' : '0', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', minHeight: '100dvh', justifyContent: currentUser ? 'flex-start' : 'center', boxSizing: 'border-box' }}>
         <Routes>
           <Route path="/login" element={
             currentUser ? <Navigate to="/" replace /> : <Login />

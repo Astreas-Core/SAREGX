@@ -59,30 +59,10 @@ export default function Login() {
   };
 
   return (
-    <div style={{ 
-      width: '100%', 
-      maxWidth: '1200px', 
-      minHeight: '75vh', 
-      margin: '0 auto',
-      display: 'flex',
-      borderRadius: '24px',
-      overflow: 'hidden',
-      background: '#111118',
-      border: '1px solid rgba(255,255,255,0.05)',
-      boxShadow: '0 32px 64px rgba(0,0,0,0.6)'
-    }}>
+    <div className="login-container">
       
       {/* LEFT SIDE - CREATIVE BRANDING */}
-      <div style={{
-        flex: 1,
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '64px',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.15) 0%, rgba(10, 10, 15, 0) 100%)'
-      }}>
+      <div className="login-left">
         
         {/* Decorative Background Elements */}
         <div style={{
@@ -136,15 +116,7 @@ export default function Login() {
       </div>
 
       {/* RIGHT SIDE - FORM */}
-      <div style={{
-        flex: '0 0 450px',
-        background: '#0a0a0f',
-        padding: '64px 48px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        borderLeft: '1px solid rgba(255,255,255,0.03)'
-      }}>
+      <div className="login-right">
         
         <h2 style={{ marginBottom: '8px', fontWeight: 700, fontSize: '2rem', letterSpacing: '-0.02em', color: 'white' }}>
           {isLogin ? 'Welcome back' : 'Create an account'}

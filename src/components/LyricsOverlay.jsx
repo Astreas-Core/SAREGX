@@ -5,6 +5,16 @@ import { usePlayer } from '../contexts/PlayerContext';
 
 export default function LyricsOverlay({ isOpen, onClose }) {
   const { currentTrack, progress, duration, isPlaying, togglePlay, likedSongs, toggleLike, playNextInQueue, seekTo } = usePlayer();
+
+  // Toggle body class to hide nav/player on mobile when lyrics are open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('lyrics-open');
+    } else {
+      document.body.classList.remove('lyrics-open');
+    }
+    return () => document.body.classList.remove('lyrics-open');
+  }, [isOpen]);
   const [lyrics, setLyrics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -208,7 +218,7 @@ export default function LyricsOverlay({ isOpen, onClose }) {
       animation: 'gradientBG 15s ease infinite',
       backdropFilter: 'blur(30px)',
       WebkitBackdropFilter: 'blur(30px)',
-      zIndex: 1000,
+      zIndex: 10000,
       color: 'white',
       display: 'flex',
       flexDirection: 'column',
