@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       title: item.title,
       author: item.author.name,
       lengthSeconds: item.seconds,
-      videoThumbnails: [{ url: item.thumbnail }]
+      videoThumbnails: [{ url: `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg` }]
     }));
 
     return res.status(200).json(results);

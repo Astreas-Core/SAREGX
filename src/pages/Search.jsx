@@ -272,13 +272,13 @@ export default function Search() {
                 id: v.videoId,
                 title: v.title,
                 artist: v.author,
-                thumb: v.videoThumbnails?.[0]?.url || ''
+                thumb: `https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`
               }));
               playTrack({
                 id: video.videoId,
                 title: video.title,
                 artist: video.author,
-                thumb: video.videoThumbnails?.[0]?.url || ''
+                thumb: `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`
               }, playlistContext);
             }}
           >
@@ -294,7 +294,7 @@ export default function Search() {
               boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
             }}>
               <img 
-                src={video.videoThumbnails?.[0]?.url} 
+                src={`https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`} 
                 alt={video.title} 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />

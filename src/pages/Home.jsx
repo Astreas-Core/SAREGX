@@ -391,7 +391,7 @@ export default function Home() {
                 style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', position: 'relative' }}
               >
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', marginBottom: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
-                  <img src={track.thumb} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={track.id ? `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg` : track.thumb} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div className="play-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent-hex, var(--accent-pink))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(var(--accent-rgb), 0.5)' }}>
                       <Play fill="white" size={24} style={{ marginLeft: '4px' }} />
@@ -440,7 +440,7 @@ export default function Home() {
                 }}
               >
                 <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                  <img src={track.thumb || track.albumArtUrl} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={track.id ? `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg` : (track.thumb || track.albumArtUrl)} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div className="play-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}>
                     <Play fill="white" size={20} style={{ marginLeft: '2px' }} />
                   </div>
