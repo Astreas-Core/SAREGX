@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { db } from '../firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { searchYouTubeMultiple } from '../utils/youtubeSearch';
 
 let cachedRecommendations = [];
 let cachedMood = 'All';
@@ -114,12 +115,8 @@ export default function Home() {
           let success = false;
           
           try {
-            const url = `/api/search?q=${encodeURIComponent(query)}`;
-            const res = await fetch(url);
-            
-            if (res.ok) {
-              const data = await res.json();
-              if (data && data.length > 0) {
+            const data = await searchYouTubeMultiple(query);
+            if (data && data.length > 0) {
                 for (const rec of data) {
                   if (!historyIds.has(rec.videoId) && !seenRecIds.has(rec.videoId)) {
                     // Music Filter Heuristic
@@ -169,13 +166,9 @@ export default function Home() {
           for (const seedTrack of seeds) {
             try {
               const q = `${seedTrack.title} ${seedTrack.artist} similar music playlist`;
-              const url = `/api/search?q=${encodeURIComponent(q)}`;
-              const res = await fetch(url);
-              if (res.ok) {
-                const data = await res.json();
-                if (data && data.length > 0) {
-                  allRecs = [...allRecs, ...data.slice(0, 6)]; // Take top 6
-                }
+              const data = await searchYouTubeMultiple(q);
+              if (data && data.length > 0) {
+                allRecs = [...allRecs, ...data.slice(0, 6)]; // Take top 6
               }
             } catch(e) {}
           }
@@ -184,13 +177,9 @@ export default function Home() {
           for (const queryStr of searchSeeds) {
             const musicQuery = `${queryStr} song audio`; // bias towards music
             try {
-              const url = `/api/search?q=${encodeURIComponent(musicQuery)}`;
-              const res = await fetch(url);
-              if (res.ok) {
-                const data = await res.json();
-                if (data && data.length > 0) {
-                  allRecs = [...allRecs, ...data.slice(0, 6)]; // Take top 6 from search
-                }
+              const data = await searchYouTubeMultiple(musicQuery);
+              if (data && data.length > 0) {
+                allRecs = [...allRecs, ...data.slice(0, 6)]; // Take top 6 from search
               }
             } catch(e) {}
           }
