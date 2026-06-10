@@ -137,7 +137,6 @@ export default function Home() {
                 }
                 success = true;
               }
-            }
           } catch(e) {
             console.warn("Recommendation search failed", e);
           }
