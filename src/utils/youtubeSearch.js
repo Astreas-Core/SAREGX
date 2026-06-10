@@ -1,13 +1,32 @@
-// Highly reliable CORS-enabled public Invidious & Piped instances
+// Highly reliable CORS-enabled public Invidious & Piped instances as FALLBACKS
 const API_INSTANCES = [
   { url: 'https://iv.ggtyler.dev', type: 'invidious' },
   { url: 'https://vid.puffyan.us', type: 'invidious' },
-  { url: 'https://invidious.jing.rocks', type: 'invidious' },
   { url: 'https://pipedapi.kavin.rocks', type: 'piped' },
   { url: 'https://pipedapi.smnz.de', type: 'piped' }
 ];
 
 export async function searchYouTubeTrack(query) {
+  // FIRST PRIORITY: Vercel Serverless Backend (uses yt-search, incredibly fast, no CORS issues)
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query + ' audio')}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const item = data[0];
+        return {
+          id: item.videoId,
+          title: item.title,
+          artist: item.author,
+          thumb: item.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg`
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("Backend /api/search failed, falling back to public APIs...");
+  }
+
+  // FALLBACK: Public proxy instances (for local dev without vercel CLI)
   for (const instance of API_INSTANCES) {
     try {
       if (instance.type === 'invidious') {
@@ -30,7 +49,6 @@ export async function searchYouTubeTrack(query) {
           const data = await res.json();
           if (data && data.items && data.items.length > 0) {
             const item = data.items[0];
-            // Piped URLs are like /watch?v=ID
             const videoId = item.url.replace('/watch?v=', '');
             return {
               id: videoId,
@@ -49,6 +67,26 @@ export async function searchYouTubeTrack(query) {
 }
 
 export async function searchYouTubeMultiple(query) {
+  // FIRST PRIORITY: Vercel Serverless Backend
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return data.map(item => ({
+          videoId: item.videoId,
+          title: item.title,
+          author: item.author,
+          lengthSeconds: item.lengthSeconds,
+          videoThumbnails: [{ url: item.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg` }]
+        }));
+      }
+    }
+  } catch (e) {
+    console.warn("Backend /api/search failed for multiple search, falling back...");
+  }
+
+  // FALLBACK
   for (const instance of API_INSTANCES) {
     try {
       if (instance.type === 'invidious') {
