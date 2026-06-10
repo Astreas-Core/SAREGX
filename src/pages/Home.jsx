@@ -107,36 +107,62 @@ export default function Home() {
       try {
         let uniqueRecs = [];
         const seenRecIds = new Set();
+        const seenTitles = new Set();
+        const artistCounts = {};
         const historyIds = new Set(recentTracks.map(t => t.id));
+
+        const normalizeTitle = (title) => {
+          return title.toLowerCase()
+            .replace(/\([^)]*\)/g, '') // Remove (Official Video)
+            .replace(/\[[^\]]*\]/g, '') // Remove [Lyrics]
+            .replace(/official video|lyric video|audio|full video|4k|8d|slowed|reverb/g, '')
+            .split('-')[0] // Take only the part before a dash
+            .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+            .trim();
+        };
+
+        const addRecommendation = (rec) => {
+          if (uniqueRecs.length >= 12) return false;
+          if (historyIds.has(rec.videoId) || seenRecIds.has(rec.videoId)) return true;
+          
+          const t = rec.title.toLowerCase();
+          const a = rec.author.toLowerCase();
+          const isBad = t.includes('vlog') || t.includes('podcast') || t.includes('interview') || t.includes('reaction') || t.includes('review') || t.includes('investigat') || t.includes('show') || t.includes('comedy') || t.includes('funny') || t.includes('prank') || t.includes('stand up') || t.includes('unboxing') || t.includes('tutorial') || t.includes('how to') || a.includes('comedy') || a.includes('vlog') || a.includes('mrwhosetheboss') || a.includes('tanmay');
+          
+          if (isBad) return true;
+
+          const normTitle = normalizeTitle(rec.title);
+          // Deduplication: if we've seen this normalized title before, skip it
+          if (seenTitles.has(normTitle)) return true;
+
+          // Per-Artist Limiting: max 2 songs per artist
+          const artistCount = artistCounts[rec.author] || 0;
+          if (artistCount >= 2) return true;
+
+          seenRecIds.add(rec.videoId);
+          seenTitles.add(normTitle);
+          artistCounts[rec.author] = artistCount + 1;
+
+          uniqueRecs.push({
+            id: rec.videoId,
+            title: rec.title,
+            artist: rec.author,
+            thumb: rec.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${rec.videoId}/mqdefault.jpg`
+          });
+          return true;
+        };
 
         if (selectedMood !== 'All') {
           // Fetch via search based on mood
           const query = `${selectedMood} music playlist 2024`.trim();
-          let success = false;
-          
           try {
             const data = await searchYouTubeMultiple(query);
             if (data && data.length > 0) {
-                for (const rec of data) {
-                  if (!historyIds.has(rec.videoId) && !seenRecIds.has(rec.videoId)) {
-                    // Music Filter Heuristic
-                    const t = rec.title.toLowerCase();
-                    const a = rec.author.toLowerCase();
-                    const isBad = t.includes('vlog') || t.includes('podcast') || t.includes('interview') || t.includes('reaction') || t.includes('review') || t.includes('investigat') || t.includes('show') || t.includes('comedy') || t.includes('funny') || t.includes('prank') || t.includes('stand up') || t.includes('unboxing') || t.includes('tutorial') || t.includes('how to') || a.includes('comedy') || a.includes('vlog') || a.includes('mrwhosetheboss') || a.includes('tanmay');
-                    
-                    if (!isBad) {
-                      seenRecIds.add(rec.videoId);
-                      uniqueRecs.push({
-                        id: rec.videoId,
-                        title: rec.title,
-                        artist: rec.author,
-                        thumb: rec.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${rec.videoId}/mqdefault.jpg`
-                      });
-                    }
-                  }
-                }
-                success = true;
+              for (const rec of data) {
+                if (uniqueRecs.length >= 12) break;
+                addRecommendation(rec);
               }
+            }
           } catch(e) {
             console.warn("Recommendation search failed", e);
           }
@@ -144,6 +170,8 @@ export default function Home() {
           // 1. Shuffled Liked & History Seeds
           const likedTracks = Object.values(likedSongs || {});
           const historyTracks = [...recentTracks];
+          
+          // Weighted Seed Pool
           const allPotentialSeedTracks = [];
           const seenSeedIds = new Set();
           for (const t of [...likedTracks, ...historyTracks]) {
@@ -153,58 +181,48 @@ export default function Home() {
             }
           }
           const shuffledSeedTracks = allPotentialSeedTracks.sort(() => 0.5 - Math.random());
-          const seeds = shuffledSeedTracks.slice(0, 2);
+          const seeds = shuffledSeedTracks.slice(0, 3); // Take up to 3 track seeds
 
           // 2. Shuffled Search Queries
           const shuffledSearches = [...recentSearches].sort(() => 0.5 - Math.random());
           const searchSeeds = shuffledSearches.slice(0, 1);
           
-          let allRecs = [];
-          
-          // Fetch related videos for the random track seeds via yt-dlp search
+          // Fetch related videos for the track seeds
           for (const seedTrack of seeds) {
+            if (uniqueRecs.length >= 12) break;
             try {
-              const q = `${seedTrack.title} ${seedTrack.artist} similar music playlist`;
+              // Broader search query for better variety
+              const q = `${seedTrack.artist} mix`;
               const data = await searchYouTubeMultiple(q);
               if (data && data.length > 0) {
-                allRecs = [...allRecs, ...data.slice(0, 6)]; // Take top 6
+                // Shuffle data to get variety across the artist's discography
+                const shuffledData = data.sort(() => 0.5 - Math.random());
+                for (const rec of shuffledData) {
+                  if (uniqueRecs.length >= 12) break;
+                  addRecommendation(rec);
+                }
               }
             } catch(e) {}
           }
 
-          // Fetch search results for the random search seeds via yt-dlp search
+          // Fetch search results for the random search seeds
           for (const queryStr of searchSeeds) {
-            const musicQuery = `${queryStr} song audio`; // bias towards music
+            if (uniqueRecs.length >= 12) break;
+            const musicQuery = `${queryStr} songs`;
             try {
               const data = await searchYouTubeMultiple(musicQuery);
               if (data && data.length > 0) {
-                allRecs = [...allRecs, ...data.slice(0, 6)]; // Take top 6 from search
+                const shuffledData = data.sort(() => 0.5 - Math.random());
+                for (const rec of shuffledData) {
+                  if (uniqueRecs.length >= 12) break;
+                  addRecommendation(rec);
+                }
               }
             } catch(e) {}
           }
-          
-          for (const rec of allRecs) {
-            if (!historyIds.has(rec.videoId) && !seenRecIds.has(rec.videoId)) {
-              // Music Filter Heuristic
-              const t = rec.title.toLowerCase();
-              const a = rec.author.toLowerCase();
-              const isBad = t.includes('vlog') || t.includes('podcast') || t.includes('interview') || t.includes('reaction') || t.includes('review') || t.includes('investigat') || t.includes('show') || t.includes('comedy') || t.includes('funny') || t.includes('prank') || t.includes('stand up') || t.includes('unboxing') || t.includes('tutorial') || t.includes('how to') || a.includes('comedy') || a.includes('vlog') || a.includes('mrwhosetheboss') || a.includes('tanmay');
-              
-              if (!isBad) {
-                seenRecIds.add(rec.videoId);
-                uniqueRecs.push({
-                  id: rec.videoId,
-                  title: rec.title,
-                  artist: rec.author,
-                  thumb: rec.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${rec.videoId}/mqdefault.jpg`
-                });
-              }
-            }
-          }
         }
         
-        const shuffled = uniqueRecs.sort(() => 0.5 - Math.random());
-        const finalRecs = shuffled.slice(0, 12);
+        const finalRecs = uniqueRecs;
         
         if (mounted) {
           // Update global cache so they persist across unmounts
