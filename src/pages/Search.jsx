@@ -30,6 +30,8 @@ export default function Search() {
         }
       });
       setRecentSearches(searches);
+    }, (error) => {
+      console.error("Error fetching search history:", error);
     });
     return () => unsubscribe();
   }, []);

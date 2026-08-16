@@ -58,6 +58,8 @@ export default function Home() {
         }
       });
       setRecentTracks(tracks);
+    }, (error) => {
+      console.error("Error fetching play history:", error);
     });
 
     // Listen to Search History
@@ -74,6 +76,9 @@ export default function Home() {
         }
       });
       setRecentSearches(searches);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching searches:", error);
       setLoading(false);
     });
 

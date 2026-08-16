@@ -36,8 +36,8 @@ export default function YouTubePlayer() {
   };
 
   const opts = {
-    height: '0',
-    width: '0',
+    height: '200',
+    width: '200',
     playerVars: {
       autoplay: 0, // Disable auto-play so the dummy preload video doesn't play
       controls: 0,
@@ -53,7 +53,7 @@ export default function YouTubePlayer() {
   // This drastically reduces playback latency.
 
   return (
-    <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', zIndex: -100 }}>
+    <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', opacity: 0, pointerEvents: 'none', zIndex: -100 }}>
       <YouTube 
         videoId="dQw4w9WgXcQ" // Dummy ID to preload the massive YouTube iframe instantly
         opts={opts} 

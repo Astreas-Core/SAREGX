@@ -53,6 +53,8 @@ export function PlayerProvider({ children }) {
         likesMap[doc.id] = doc.data();
       });
       setLikedSongs(likesMap);
+    }, (error) => {
+      console.error("Error fetching likes:", error);
     });
 
     const unsubscribePlaylists = onSnapshot(collection(db, 'users', auth.currentUser.uid, 'playlists'), (snapshot) => {
@@ -66,6 +68,8 @@ export function PlayerProvider({ children }) {
         return getMs(b.createdAt) - getMs(a.createdAt);
       });
       setPlaylists(p);
+    }, (error) => {
+      console.error("Error fetching playlists:", error);
     });
 
     return () => {

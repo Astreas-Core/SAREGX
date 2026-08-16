@@ -37,6 +37,9 @@ export default function Library() {
       });
       setLikes(tracks);
       setLoadingLikes(false);
+    }, (error) => {
+      console.error("Error fetching likes:", error);
+      setLoadingLikes(false);
     });
 
     return () => unsubscribe();
