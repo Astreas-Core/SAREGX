@@ -343,7 +343,7 @@ function TrackListItem({ track, index, playTrack, toggleLike, isLiked }) {
       
       <div style={{ width: '48px', height: '48px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {track.id || track.thumb || track.albumArtUrl ? (
-          <img src={track.id ? `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg` : (track.thumb || track.albumArtUrl)} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={track.thumb || track.albumArtUrl || (track.id ? `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg` : ``)} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <Music size={20} color="rgba(255,255,255,0.2)" />
         )}
