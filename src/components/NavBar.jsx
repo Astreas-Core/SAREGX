@@ -75,6 +75,7 @@ export default function NavBar() {
   return (
     <>
       <Link to="/" className="nav-logo-fixed" style={{ position: 'fixed', top: '28px', left: '32px', zIndex: 2000, display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+        <img src="/logo.png" alt="Saregx Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
         <div style={{
           background: 'linear-gradient(135deg, var(--accent-hex, var(--accent-pink)), #ffffff)',
           WebkitBackgroundClip: 'text',
