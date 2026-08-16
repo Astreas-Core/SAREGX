@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/favicon.svg" alt="SAREGX Logo" width="120" />
+  <img src="public/logo.png" alt="SAREGX Logo" width="120" />
 
   # SAREGX 🎵
 
